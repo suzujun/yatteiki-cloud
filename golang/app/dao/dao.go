@@ -3,49 +3,60 @@ package dao
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"os"
 	"strings"
 	"time"
 
-	"ghe.ca-tools.org/valencia/valencia-api/modelgen"
+	sq "github.com/Masterminds/squirrel"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/pkg/errors"
 	gorp "gopkg.in/gorp.v1"
 )
 
-// DbConfig database config struct
-type DbConfig struct {
-	Host            string
-	User            string
-	Password        string
-	Dbname          string
-	Port            string
-	MaxIdleConns    int
-	ConnMaxLifetime time.Duration
-}
-
-type Dao struct {
-}
-
-func newDao(dbm, dbs *gorp.DbMap) *Dao {
-	m := modelgen.Auth{}
-	tableName := m.TableName()
-	pks := m.PrimaryKeys()
-	dbm.AddTableWithName(m, tableName).SetKeys(true, pks...)
-	dbs.AddTableWithName(m, tableName).SetKeys(true, pks...)
-	dao := AuthDao{}
-	dao.baseDao = newBaseDao(dbm, dbs)
-	dao.tableName = tableName
-	dao.columnsName = strings.Join(m.ColumnNames(), ",")
-	return &dao
-}
-
-func hoge() *gorp.DbMap {
-	c := DbConfig{
-		User:     "root",
-		Password: "",
-		Host:     "localhost",
-		Port:     "3306",
-		Dbname:   "yatteiki_cloud",
+type (
+	// DbConfig database config struct
+	DbConfig struct {
+		Host            string
+		User            string
+		Password        string
+		Dbname          string
+		Port            string
+		MaxIdleConns    int
+		ConnMaxLifetime time.Duration
 	}
+	baseDao struct {
+		dbm         *gorp.DbMap
+		dbs         *gorp.DbMap
+		tableName   string
+		primaryKeys []string
+		columnsName string
+	}
+	// Table interface
+	Table interface {
+		Name() string
+		PrimaryKeys() []string
+		ColumnNames() []string
+	}
+)
+
+var dbm, dbs *gorp.DbMap
+
+// NewDao is new dao
+func NewDao(table Table) baseDao {
+	dao := baseDao{
+		dbm:         dbm,
+		dbs:         dbs,
+		tableName:   table.Name(),
+		primaryKeys: table.PrimaryKeys(),
+		columnsName: strings.Join(table.ColumnNames(), ","),
+	}
+	dbm.AddTableWithName(dao, table.Name()).SetKeys(true, table.PrimaryKeys()...)
+	dbs.AddTableWithName(dao, table.Name()).SetKeys(true, table.PrimaryKeys()...)
+	return dao
+}
+
+func setupDbMap(c DbConfig) *gorp.DbMap {
 	// see also https://github.com/go-sql-driver/mysql#timetime-support
 	dataSource := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true",
 		c.User, c.Password, c.Host, c.Port, c.Dbname)
@@ -63,11 +74,98 @@ func hoge() *gorp.DbMap {
 	db.SetMaxIdleConns(c.MaxIdleConns)
 	db.SetConnMaxLifetime(c.ConnMaxLifetime)
 
-	return &gorp.DbMap{
+	dbmap := &gorp.DbMap{
 		Db: db,
 		Dialect: gorp.MySQLDialect{
 			Engine:   "InnoDB",
 			Encoding: "utf8mb4",
 		},
 	}
+	dbmap.TraceOn("[gorp]", log.New(os.Stdout, "myapp:", log.Lmicroseconds))
+	return dbmap
+}
+
+// PingDb is ping database
+func PingDb() bool {
+	if err := dbm.Db.Ping(); err != nil {
+		fmt.Printf("failed to ping to dbm error: %+v\n", err)
+		return false
+	}
+	if err := dbs.Db.Ping(); err != nil {
+		fmt.Printf("failed to ping to dbs errpr: %+v\n", err)
+		return false
+	}
+	return true
+}
+
+func (dao baseDao) newSelectBuilder() sq.SelectBuilder {
+	return sq.Select(dao.columnsName).From(dao.tableName)
+}
+
+func (dao baseDao) newUpdateBuilder() sq.UpdateBuilder {
+	return sq.Update(dao.tableName)
+}
+
+func (dao baseDao) newDeleteBuilder() sq.DeleteBuilder {
+	return sq.Delete(dao.tableName)
+}
+
+func (dao baseDao) findOneByBuilder(builder *sq.SelectBuilder, target interface{}) error {
+	sql, args, err := builder.ToSql()
+	if err != nil {
+		return errors.Wrapf(err, "build sql failed [sql='%s'][args='%+v']", sql, args)
+	}
+	if err := dao.dbs.SelectOne(target, sql, args...); err != nil {
+		return errors.Wrapf(err, "fetch data failed [sql='%s'][args='%+v']", sql, args)
+	}
+	return nil
+}
+
+func (dao baseDao) findManyByBuilder(builder *sq.SelectBuilder, targets interface{}) error {
+	sql, args, err := builder.ToSql()
+	if err != nil {
+		return errors.Wrapf(err, "build sql failed [sql='%s'][args='%+v']", sql, args)
+	}
+	if _, err := dao.dbs.Select(targets, sql, args...); err != nil {
+		return errors.Wrapf(err, "fetch data failed [sql='%s'][args='%+v']", sql, args)
+	}
+	return nil
+}
+
+func (dao baseDao) insert(target interface{}) error {
+	return errors.Wrapf(dao.dbm.Insert(target), "insert failed [%+v]", dao.tableName)
+}
+
+func (dao baseDao) update(target interface{}) error {
+	_, err := dao.dbm.Update(target)
+	return errors.Wrapf(err, "update failed [%+v]", dao.tableName)
+}
+
+func (dao baseDao) updateByBuilder(builder *sq.UpdateBuilder) (sql.Result, error) {
+	sql, args, err := builder.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "build update sql failed [sql='%s'][args='%+v']", sql, args)
+	}
+	result, err := dao.dbm.Exec(sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "update data failed [sql='%s'][args='%+v']", sql, args)
+	}
+	return result, nil
+}
+
+func (dao baseDao) delete(target interface{}) error {
+	_, err := dao.dbm.Delete(target)
+	return errors.Wrapf(err, "delete failed [%+v]", dao.tableName)
+}
+
+func (dao baseDao) deleteByBuilder(builder *sq.DeleteBuilder) (sql.Result, error) {
+	sql, args, err := builder.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "build delete sql failed [sql='%s'][args='%+v']", sql, args)
+	}
+	result, err := dao.dbm.Exec(sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "delete data failed [sql='%s'][args='%+v']", sql, args)
+	}
+	return result, nil
 }

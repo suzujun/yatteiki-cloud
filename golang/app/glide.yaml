@@ -6,4 +6,6 @@ import:
 - package: github.com/go-sql-driver/mysql
   version: v1.3
 - package: gopkg.in/gorp.v1
-  version: "2.1"
+  version: ^1.1.0
+- package: github.com/Masterminds/squirrel
+  version: v1.0

@@ -1,5 +1,5 @@
-hash: 7fbf3a41b162f0cc663e442c75859fd34bca4f587b340c957179f9c0a337784f
-updated: 2018-05-16T00:26:04.222772+09:00
+hash: dbda3ed6cf742918aff5a9bddb6d7333dace069ebfc41e46178ac4e382d37bd5
+updated: 2018-05-28T23:29:22.331812+09:00
 imports:
 - name: github.com/gin-contrib/sse
   version: 22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae
@@ -14,10 +14,16 @@ imports:
   version: c65a0412e71e8b9b3bfd22925720d23c0f054237
   subpackages:
   - proto
+- name: github.com/lann/builder
+  version: f22ce00fd9394014049dad11c244859432bd6820
+- name: github.com/lann/ps
+  version: 62de8c46ede02a7675c4c79c84883eb164cb71e3
+- name: github.com/Masterminds/squirrel
+  version: a6b93000bd219143c56c16e6cb1c4b91da3f224b
 - name: github.com/mattn/go-isatty
   version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
-- name: github.com/suzujun/gorp
-  version: 390956328094c74d7c75a7e71a4d17e9297ed90e
+- name: github.com/pkg/errors
+  version: e881fd58d78e04cf6d0de1217f8707c8cc2249bc
 - name: github.com/ugorji/go
   version: f3cacc17c85ecb7f1b6a9e373ee85d1480919868
   subpackages:
@@ -29,7 +35,7 @@ imports:
 - name: gopkg.in/go-playground/validator.v8
   version: 5f1438d3fca68893a817e4a66806cea46a9e4ebf
 - name: gopkg.in/gorp.v1
-  version: 4df78490a9aa9a78b9b02b0c913df8dc1954faee
+  version: c87af80f3cc5036b55b83d77171e156791085e2e
 - name: gopkg.in/yaml.v2
   version: d670f9405373e636a5a2765eea47fac0c9bc91a4
 testImports: []
