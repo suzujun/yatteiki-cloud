@@ -3,3 +3,7 @@ import:
 - package: github.com/gin-gonic/gin
   version: v1.2
 - package: github.com/gin-contrib/sse
+- package: github.com/go-sql-driver/mysql
+  version: v1.3
+- package: gopkg.in/gorp.v1
+  version: "2.1"
