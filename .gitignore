@@ -2,5 +2,5 @@
 /goapp/vendor
 
 # nodejs
-/nodejs/app/node_modules
+/nodeapp/node_modules
 
