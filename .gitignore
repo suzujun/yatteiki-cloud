@@ -1,5 +1,5 @@
 # golang
-/golang/app/vendor
+/goapp/vendor
 
 # nodejs
 /nodejs/app/node_modules

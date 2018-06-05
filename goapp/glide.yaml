@@ -9,3 +9,5 @@ import:
   version: ^1.1.0
 - package: github.com/Masterminds/squirrel
   version: v1.0
+- package: github.com/kelseyhightower/envconfig
+  version: v1.3.0

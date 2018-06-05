@@ -3,6 +3,8 @@ package dao
 import (
 	"os"
 	"testing"
+
+	"github.com/suzujun/yatteiki-cloud/goapp/model"
 )
 
 var todoDao TodoDao
@@ -15,7 +17,7 @@ func TestMain(m *testing.M) {
 		Password: "",
 		Host:     "localhost",
 		Port:     "3306",
-		Dbname:   "yatteiki_cloud",
+		Dbname:   "yatteiki",
 	}
 
 	// slave
@@ -24,7 +26,7 @@ func TestMain(m *testing.M) {
 		Password: "",
 		Host:     "localhost",
 		Port:     "3306",
-		Dbname:   "yatteiki_cloud",
+		Dbname:   "yatteiki",
 	}
 
 	// setup database
@@ -32,7 +34,7 @@ func TestMain(m *testing.M) {
 	dbs = setupDbMap(dbsConfig)
 
 	// setup tables
-	todoDao = &todoDaoImpl{baseDao: NewDao("todos", []string{"id"}, []string{"id", "note"})}
+	todoDao = &todoDaoImpl{baseDao: newDao(model.Todo{})}
 
 	os.Exit(m.Run())
 }

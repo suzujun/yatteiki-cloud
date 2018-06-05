@@ -12,19 +12,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 	gorp "gopkg.in/gorp.v1"
+
+	"github.com/suzujun/yatteiki-cloud/goapp/config"
 )
 
 type (
-	// DbConfig database config struct
-	DbConfig struct {
-		Host            string
-		User            string
-		Password        string
-		Dbname          string
-		Port            string
-		MaxIdleConns    int
-		ConnMaxLifetime time.Duration
-	}
 	baseDao struct {
 		dbm         *gorp.DbMap
 		dbs         *gorp.DbMap
@@ -42,8 +34,15 @@ type (
 
 var dbm, dbs *gorp.DbMap
 
+func Initialize(dbmConfig, dbsConfig *config.DbConfig) {
+	// setup database
+	dbm = setupDbMap(dbmConfig)
+	dbs = setupDbMap(dbsConfig)
+}
+
 // NewDao is new dao
-func NewDao(table Table) baseDao {
+func newDao(table Table) baseDao {
+
 	dao := baseDao{
 		dbm:         dbm,
 		dbs:         dbs,
@@ -51,12 +50,12 @@ func NewDao(table Table) baseDao {
 		primaryKeys: table.PrimaryKeys(),
 		columnsName: strings.Join(table.ColumnNames(), ","),
 	}
-	dbm.AddTableWithName(dao, table.Name()).SetKeys(true, table.PrimaryKeys()...)
-	dbs.AddTableWithName(dao, table.Name()).SetKeys(true, table.PrimaryKeys()...)
+	dbm.AddTableWithName(table, table.Name()).SetKeys(true, table.PrimaryKeys()...)
+	dbs.AddTableWithName(table, table.Name()).SetKeys(true, table.PrimaryKeys()...)
 	return dao
 }
 
-func setupDbMap(c DbConfig) *gorp.DbMap {
+func setupDbMap(c *config.DbConfig) *gorp.DbMap {
 	// see also https://github.com/go-sql-driver/mysql#timetime-support
 	dataSource := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true",
 		c.User, c.Password, c.Host, c.Port, c.Dbname)
@@ -142,7 +141,8 @@ func (dao baseDao) update(target interface{}) error {
 }
 
 func (dao baseDao) updateByBuilder(builder *sq.UpdateBuilder) (sql.Result, error) {
-	sql, args, err := builder.ToSql()
+	builder2 := builder.Set("updated_at", time.Now())
+	sql, args, err := builder2.ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "build update sql failed [sql='%s'][args='%+v']", sql, args)
 	}

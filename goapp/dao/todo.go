@@ -3,7 +3,7 @@ package dao
 import (
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/suzujun/yatteiki-cloud/golang/app/model"
+	"github.com/suzujun/yatteiki-cloud/goapp/model"
 )
 
 type (
@@ -11,7 +11,7 @@ type (
 	TodoDao interface {
 		FindByID(id int) (*model.Todo, error)
 		FindAll(limit uint64, marker *int) ([]model.Todo, *int, error)
-		Insert(note string) error
+		Insert(note string) (int, error)
 		Update(id int, note string) error
 		Delete(id int) error
 	}
@@ -23,7 +23,7 @@ type (
 // NewTodoDao ...
 func NewTodoDao() TodoDao {
 	return &todoDaoImpl{
-		baseDao: NewDao(model.Todo{}),
+		baseDao: newDao(model.Todo{}),
 	}
 }
 
@@ -31,8 +31,11 @@ func NewTodoDao() TodoDao {
 func (dao todoDaoImpl) FindByID(id int) (*model.Todo, error) {
 	builder := dao.newSelectBuilder().
 		Where(sq.Eq{"id": id})
-	var m *model.Todo
-	return m, dao.findOneByBuilder(&builder, m)
+	var m model.Todo
+	if err := dao.findOneByBuilder(&builder, &m); err != nil {
+		return nil, err
+	}
+	return &m, nil
 }
 
 // FindAll ...
@@ -49,22 +52,25 @@ func (dao todoDaoImpl) FindAll(limit uint64, marker *int) ([]model.Todo, *int, e
 	}
 	var lastID *int
 	if len(ms) > int(limit) {
-		ms = ms[:limit-1]
-		lastID = &ms[limit-1].ID
+		ms = ms[:limit]
+		lastID = &ms[len(ms)-1].ID
 	}
 	return ms, lastID, nil
 }
 
 // Insert ...
-func (dao todoDaoImpl) Insert(note string) error {
+func (dao todoDaoImpl) Insert(note string) (int, error) {
 	m := model.Todo{Note: note}
-	return dao.insert(&m)
+	return m.ID, dao.insert(&m)
 }
 
 // Update ...
 func (dao todoDaoImpl) Update(id int, note string) error {
-	m := model.Todo{ID: id, Note: note}
-	return dao.update(&m)
+	builder := dao.newUpdateBuilder().
+		Set("note", note).
+		Where(sq.Eq{"id": id})
+	_, err := dao.updateByBuilder(&builder)
+	return err
 }
 
 // Delete ...
