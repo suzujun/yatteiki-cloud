@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	null "gopkg.in/guregu/null.v3"
 
 	"github.com/suzujun/yatteiki-cloud/goapp/dao"
 )
@@ -40,13 +41,13 @@ func (t todo) GetList(c *gin.Context) {
 
 func (t todo) Post(c *gin.Context) {
 	body := struct {
-		Note string `json:"note"`
+		Title string `json:"title"`
 	}{}
 	if err := c.BindJSON(&body); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	insertedID, err := t.todoDao.Insert(body.Note)
+	insertedID, err := t.todoDao.Insert(body.Title)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -76,9 +77,10 @@ func (t todo) Get(c *gin.Context) {
 	})
 }
 
-func (t todo) Put(c *gin.Context) {
+func (t todo) Patch(c *gin.Context) {
 	body := struct {
-		Note string `json:"note"`
+		Title     null.String `json:"title"`
+		Completed null.Bool   `json:"completed"`
 	}{}
 	if err := c.BindJSON(&body); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -89,7 +91,7 @@ func (t todo) Put(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "invalid todos id"})
 		return
 	}
-	if err := t.todoDao.Update(id, body.Note); err != nil {
+	if err := t.todoDao.Update(id, body.Title, body.Completed); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}

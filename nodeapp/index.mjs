@@ -1,16 +1,24 @@
 import apiClient from './api_client'
+import fs from 'fs';
 import express from 'express';
 import body_parser from 'body-parser';
 
 var app = express();
+app.use(express.static('public'));
 app.use(body_parser.urlencoded({ extended: true }));
 app.use(body_parser.json({limit: '10mb'}));
 
 const port = 3000;
 
 app.get('/', (req, res) => {
-  var data = {name:"suzuki",age:25}
-  res.send(data)
+  // var data = {name:"suzuki",age:25}
+  // res.send(data)
+
+  fs.readFile('./views/index.html', 'utf-8', (err, data) => {
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    res.write(data);
+    res.end();
+  });
 });
 
 app.get('/ping', (req, res, next) => {
@@ -54,10 +62,10 @@ app.get('/todos/:id', (req, res, next) => {
 });
 
 app.post('/todos', (req, res, next) => {
-  if (!req.body || !req.body.note) {
-    return res.status(400).send({error:'required note'})
+  if (!req.body || !req.body.title) {
+    return res.status(400).send({error:'required title'})
   }
-  apiClient.create(req.body.note, (err, body) => {
+  apiClient.create(req.body.title, (err, body) => {
     if (err) {
       return next(err)
     }
@@ -65,11 +73,17 @@ app.post('/todos', (req, res, next) => {
   })
 });
 
-app.put('/todos/:id', (req, res, next) => {
-  if (!req.body.note) {
-    return res.status(400).send({error:'required note'})
+app.patch('/todos/:id', (req, res, next) => {
+  if (!req.body.title) {
+    return res.status(400).send({error:'required title'})
   }
-  apiClient.update(req.params.id, req.body.note, (err, body) => {
+  var body = {
+    title: req.body.title,
+  }
+  if ("completed" in req.body) {
+    body.completed = req.body.completed
+  }
+  apiClient.update(req.params.id, body, (err, body) => {
     if (err) {
       return next(err)
     }

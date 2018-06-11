@@ -36,18 +36,18 @@ class ApiClient {
       .end(this._checkResponse(callback))
   }
 
-  create(note, callback) {
+  create(title, callback) {
     request
       .post(this.baseUrl+'/todos')
-      .send({note})
+      .send({title})
       .timeout(this.timeout)
       .end(this._checkResponse(callback))
   }
 
-  update(id, note, callback) {
+  update(id, values, callback) {
     request
-      .put(this.baseUrl+`/todos/${id}`)
-      .send({note})
+      .patch(this.baseUrl+`/todos/${id}`)
+      .send(values)
       .timeout(this.timeout)
       .end(this._checkResponse(callback))
   }

@@ -27,7 +27,7 @@ func main() {
 			todos.GET("", ctrl.GetList)
 			todos.POST("", ctrl.Post)
 			todos.GET("/:id", ctrl.Get)
-			todos.PUT("/:id", ctrl.Put)
+			todos.PATCH("/:id", ctrl.Patch)
 			todos.DELETE("/:id", ctrl.Delete)
 		}
 	}

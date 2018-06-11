@@ -3,8 +3,9 @@ package model
 type (
 	// Todo is model
 	Todo struct {
-		ID   int    `db:"id"`
-		Note string `db:"note"`
+		ID        int    `db:"id" json:"id"`
+		Title     string `db:"title" json:"title"`
+		Completed bool   `db:"completed" json:"completed"`
 		Model
 	}
 )
@@ -21,5 +22,5 @@ func (m Todo) PrimaryKeys() []string {
 
 // ColumnNames is get columns for table
 func (m Todo) ColumnNames() []string {
-	return []string{"id", "note", "created_at", "updated_at"}
+	return []string{"id", "title", "completed", "created_at", "updated_at"}
 }

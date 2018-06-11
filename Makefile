@@ -17,9 +17,11 @@ install-nginx:
 	apt-get install nginx
 
 install-node:
-	apt-get install nodejs
-	apt-get install npm
-	update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10
+	apt-get install -y nodejs npm
+	npm cache clean
+	npm install n -g
+	n stable
+	ln -sf /usr/local/bin/node /usr/bin/node
 
 run: run-goapp run-nodeapp
 

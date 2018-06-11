@@ -2,6 +2,7 @@ package dao
 
 import (
 	sq "github.com/Masterminds/squirrel"
+	null "gopkg.in/guregu/null.v3"
 
 	"github.com/suzujun/yatteiki-cloud/goapp/model"
 )
@@ -11,8 +12,8 @@ type (
 	TodoDao interface {
 		FindByID(id int) (*model.Todo, error)
 		FindAll(limit uint64, marker *int) ([]model.Todo, *int, error)
-		Insert(note string) (int, error)
-		Update(id int, note string) error
+		Insert(title string) (int, error)
+		Update(id int, title null.String, completed null.Bool) error
 		Delete(id int) error
 	}
 	todoDaoImpl struct {
@@ -59,16 +60,21 @@ func (dao todoDaoImpl) FindAll(limit uint64, marker *int) ([]model.Todo, *int, e
 }
 
 // Insert ...
-func (dao todoDaoImpl) Insert(note string) (int, error) {
-	m := model.Todo{Note: note}
+func (dao todoDaoImpl) Insert(title string) (int, error) {
+	m := model.Todo{Title: title}
 	return m.ID, dao.insert(&m)
 }
 
 // Update ...
-func (dao todoDaoImpl) Update(id int, note string) error {
+func (dao todoDaoImpl) Update(id int, title null.String, completed null.Bool) error {
 	builder := dao.newUpdateBuilder().
-		Set("note", note).
 		Where(sq.Eq{"id": id})
+	if title.Valid {
+		builder = builder.Set("title", title.String)
+	}
+	if completed.Valid {
+		builder = builder.Set("completed", completed.Bool)
+	}
 	_, err := dao.updateByBuilder(&builder)
 	return err
 }
