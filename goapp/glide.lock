@@ -1,5 +1,5 @@
-hash: f1ed6d512974ca5f8985f42f6441483a431601c3a895dc79eb3da9b2d9102248
-updated: 2018-06-05T10:59:34.513559+09:00
+hash: 07e8edf23e8a56702fe1207b1af1e0470e3e0ea531d45716454e3592ebc2b8bd
+updated: 2018-06-11T15:29:42.92574+09:00
 imports:
 - name: github.com/gin-contrib/sse
   version: 22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae
@@ -42,6 +42,8 @@ imports:
   version: 5f1438d3fca68893a817e4a66806cea46a9e4ebf
 - name: gopkg.in/gorp.v1
   version: c87af80f3cc5036b55b83d77171e156791085e2e
+- name: gopkg.in/guregu/null.v3
+  version: e81d6d8d57747b34d7c5fe0d20ebf57692f04ea9
 - name: gopkg.in/yaml.v2
   version: d670f9405373e636a5a2765eea47fac0c9bc91a4
 testImports: []

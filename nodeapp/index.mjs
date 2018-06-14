@@ -4,7 +4,7 @@ import express from 'express';
 import body_parser from 'body-parser';
 
 var app = express();
-app.use(express.static('public'));
+// app.use(express.static('public'));
 app.use(body_parser.urlencoded({ extended: true }));
 app.use(body_parser.json({limit: '10mb'}));
 
