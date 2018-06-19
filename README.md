@@ -6,7 +6,9 @@ sudo su -
 apt-get install zip unzip
 wget https://github.com/suzujun/yatteiki-cloud/archive/master.zip
 unzip master.zip
-cd yatteiki-cloud-master
+mkdir -p app/src/github.com/suzujun
+mv yatteiki-cloud-master app/src/github.com/suzujun/yatteiki-cloud
+cd app/src/github.com/suzujun/yatteiki-cloud
 make install
 ```
 
