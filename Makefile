@@ -1,12 +1,22 @@
 
 install: install-go install-nginx install-node
 
+install-first:
+	apt-get update
+	apt-get upgrade
+	apt-get install net-tools ssh git emacs-nox zsh
+
+
 install-go:
 	apt install golang-1.9
 	mv /usr/bin/go /usr/bin/go_16
 	mv /usr/bin/gofmt /usr/bin/gofmt_16
 	ln -s /usr/lib/go-1.9/bin/go /usr/bin/go
 	ln -s /usr/lib/go-1.9/bin/gofmt /usr/bin/gofmt
+	# setup glide
+	add-apt-repository ppa:masterminds/glide && sudo apt-get update
+	apt-get install glide
+	glide i
 
 install-nginx:
 	apt-get install net-tools ssh git emacs-nox zsh
@@ -15,6 +25,11 @@ install-nginx:
 	VCNAME=`cat /etc/lsb-release | grep DISTRIB_CODENAME | cut -d= -f2` && sudo -E sh -c "echo \"deb-src http://nginx.org/packages/ubuntu/ $VCNAME nginx\" >> /etc/apt/sources.list"
 	apt-get update
 	apt-get install nginx
+	## basic auth setup
+	cd /etc/nginx/conf.d
+	apt install apache2-utils
+	htpasswd -c .htpasswd amebafresh
+
 
 install-node:
 	apt-get install -y nodejs npm
